@@ -81,8 +81,10 @@ export class CollaborationGateway
       }
 
       // Parse session cookie and validate with BetterAuth
+      const headers = new Headers();
+      headers.append('cookie', cookies);
       const session = await auth.api.getSession({
-        headers: { cookie: cookies } as Record<string, string>,
+        headers,
       });
 
       if (!session) {

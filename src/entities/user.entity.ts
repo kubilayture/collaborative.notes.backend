@@ -16,25 +16,38 @@ export class User {
   @PrimaryColumn('text')
   id: string;
 
-  @Column({ type: 'text', nullable: true })
-  name: string | null;
+  // DB: name text NOT NULL
+  @Column({ type: 'text' })
+  name: string;
 
+  // DB: email text NOT NULL UNIQUE
   @Column({ type: 'text', unique: true })
   email: string;
 
-  @Column({ type: 'timestamp', nullable: true })
-  emailVerified: Date | null;
+  // DB: emailVerified boolean NOT NULL
+  @Column({ type: 'boolean', default: false })
+  emailVerified: boolean;
 
+  // DB: image text (NULL allowed)
   @Column({ type: 'text', nullable: true })
   image: string | null;
 
-  @CreateDateColumn()
+  // DB: createdAt timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+  @CreateDateColumn({
+    type: 'timestamp',
+    name: 'createdAt',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  // DB: updatedAt timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+  @UpdateDateColumn({
+    type: 'timestamp',
+    name: 'updatedAt',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
   updatedAt: Date;
 
-  // Hide sensitive fields when serializing
   @Exclude()
   private?: any;
 }
