@@ -8,6 +8,8 @@ import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './auth';
 import { UsersModule } from './users/users.module';
 import { NotesModule } from './notes/notes.module';
+import { FriendsModule } from './friends/friends.module';
+import { MessagingModule } from './messaging/messaging.module';
 
 @Module({
   imports: [
@@ -19,6 +21,8 @@ import { NotesModule } from './notes/notes.module';
     AuthModule,
     UsersModule,
     NotesModule,
+    FriendsModule,
+    MessagingModule,
   ],
   controllers: [AppController],
   providers: [AppService],

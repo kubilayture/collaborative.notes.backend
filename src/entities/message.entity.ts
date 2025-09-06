@@ -35,6 +35,13 @@ export class Message {
   @Column({ type: 'text' })
   content: string;
 
+  @Column({ type: 'text', nullable: true })
+  replyToId: string | null;
+
+  @ManyToOne(() => Message, { nullable: true })
+  @JoinColumn({ name: 'replyToId' })
+  replyTo: Message | null;
+
   @Column({ type: 'boolean', default: false })
   isRead: boolean;
 
