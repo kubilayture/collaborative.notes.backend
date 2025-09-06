@@ -31,7 +31,10 @@ export class ThreadResponseDto {
   @Type(() => UserResponseDto)
   creator: UserResponseDto;
 
-  @ApiProperty({ description: 'Thread participants', type: [ThreadParticipantDto] })
+  @ApiProperty({
+    description: 'Thread participants',
+    type: [ThreadParticipantDto],
+  })
   @Expose()
   @Type(() => ThreadParticipantDto)
   participants: ThreadParticipantDto[];

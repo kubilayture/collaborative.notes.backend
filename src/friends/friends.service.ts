@@ -1,8 +1,18 @@
-import { Injectable, BadRequestException, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { Friend, FriendStatus, User, UserProfile } from '../entities';
-import { SendFriendRequestDto, FriendResponseDto, FriendsListResponseDto, FriendListItemDto } from './dto';
+import {
+  SendFriendRequestDto,
+  FriendResponseDto,
+  FriendsListResponseDto,
+  FriendListItemDto,
+} from './dto';
 import { plainToClass } from 'class-transformer';
 import { UsersService } from '../users/users.service';
 
@@ -18,7 +28,10 @@ export class FriendsService {
     private readonly usersService: UsersService,
   ) {}
 
-  async sendFriendRequest(userId: string, sendRequestDto: SendFriendRequestDto): Promise<FriendResponseDto> {
+  async sendFriendRequest(
+    userId: string,
+    sendRequestDto: SendFriendRequestDto,
+  ): Promise<FriendResponseDto> {
     const { email } = sendRequestDto;
 
     // Find the target user by email
@@ -48,10 +61,14 @@ export class FriendsService {
           if (existingRelation.requesterId === userId) {
             throw new ConflictException('Friend request already sent');
           } else {
-            throw new ConflictException('This user has already sent you a friend request');
+            throw new ConflictException(
+              'This user has already sent you a friend request',
+            );
           }
         case FriendStatus.BLOCKED:
-          throw new ConflictException('Cannot send friend request to this user');
+          throw new ConflictException(
+            'Cannot send friend request to this user',
+          );
         case FriendStatus.DECLINED:
           // Allow sending a new request after a decline
           await this.friendRepository.remove(existingRelation);
@@ -69,9 +86,16 @@ export class FriendsService {
     return this.getFriendRequestById(friendRequest.id);
   }
 
-  async acceptFriendRequest(userId: string, requestId: string): Promise<FriendResponseDto> {
+  async acceptFriendRequest(
+    userId: string,
+    requestId: string,
+  ): Promise<FriendResponseDto> {
     const friendRequest = await this.friendRepository.findOne({
-      where: { id: requestId, addresseeId: userId, status: FriendStatus.PENDING },
+      where: {
+        id: requestId,
+        addresseeId: userId,
+        status: FriendStatus.PENDING,
+      },
     });
 
     if (!friendRequest) {
@@ -86,7 +110,11 @@ export class FriendsService {
 
   async declineFriendRequest(userId: string, requestId: string): Promise<void> {
     const friendRequest = await this.friendRepository.findOne({
-      where: { id: requestId, addresseeId: userId, status: FriendStatus.PENDING },
+      where: {
+        id: requestId,
+        addresseeId: userId,
+        status: FriendStatus.PENDING,
+      },
     });
 
     if (!friendRequest) {
@@ -102,13 +130,17 @@ export class FriendsService {
       .createQueryBuilder('friend')
       .leftJoinAndSelect('friend.requester', 'requester')
       .leftJoinAndSelect('friend.addressee', 'addressee')
-      .where('(friend.requesterId = :userId OR friend.addresseeId = :userId)', { userId })
+      .where('(friend.requesterId = :userId OR friend.addresseeId = :userId)', {
+        userId,
+      })
       .andWhere('friend.status = :status', { status: FriendStatus.ACCEPTED })
       .orderBy('friend.updatedAt', 'DESC')
       .getMany();
 
-    const friendIds = friendRelations.map(relation => 
-      relation.requesterId === userId ? relation.addresseeId : relation.requesterId
+    const friendIds = friendRelations.map((relation) =>
+      relation.requesterId === userId
+        ? relation.addresseeId
+        : relation.requesterId,
     );
 
     // Get profiles for online status
@@ -116,15 +148,21 @@ export class FriendsService {
       where: { userId: In(friendIds) },
     });
 
-    const profilesMap = profiles.reduce((acc, profile) => {
-      acc[profile.userId] = profile;
-      return acc;
-    }, {} as Record<string, UserProfile>);
+    const profilesMap = profiles.reduce(
+      (acc, profile) => {
+        acc[profile.userId] = profile;
+        return acc;
+      },
+      {} as Record<string, UserProfile>,
+    );
 
-    const friends: FriendListItemDto[] = friendRelations.map(relation => {
-      const friend = relation.requesterId === userId ? relation.addressee : relation.requester;
+    const friends: FriendListItemDto[] = friendRelations.map((relation) => {
+      const friend =
+        relation.requesterId === userId
+          ? relation.addressee
+          : relation.requester;
       const profile = profilesMap[friend.id];
-      
+
       return plainToClass(FriendListItemDto, {
         friend,
         friendsSince: relation.updatedAt,
@@ -146,7 +184,7 @@ export class FriendsService {
       order: { createdAt: 'DESC' },
     });
 
-    return requests.map(request => plainToClass(FriendResponseDto, request));
+    return requests.map((request) => plainToClass(FriendResponseDto, request));
   }
 
   async getSentRequests(userId: string): Promise<FriendResponseDto[]> {
@@ -156,14 +194,22 @@ export class FriendsService {
       order: { createdAt: 'DESC' },
     });
 
-    return requests.map(request => plainToClass(FriendResponseDto, request));
+    return requests.map((request) => plainToClass(FriendResponseDto, request));
   }
 
   async removeFriend(userId: string, friendId: string): Promise<void> {
     const friendRelation = await this.friendRepository.findOne({
       where: [
-        { requesterId: userId, addresseeId: friendId, status: FriendStatus.ACCEPTED },
-        { requesterId: friendId, addresseeId: userId, status: FriendStatus.ACCEPTED },
+        {
+          requesterId: userId,
+          addresseeId: friendId,
+          status: FriendStatus.ACCEPTED,
+        },
+        {
+          requesterId: friendId,
+          addresseeId: userId,
+          status: FriendStatus.ACCEPTED,
+        },
       ],
     });
 
@@ -177,8 +223,16 @@ export class FriendsService {
   async areFriends(userId: string, friendId: string): Promise<boolean> {
     const friendRelation = await this.friendRepository.findOne({
       where: [
-        { requesterId: userId, addresseeId: friendId, status: FriendStatus.ACCEPTED },
-        { requesterId: friendId, addresseeId: userId, status: FriendStatus.ACCEPTED },
+        {
+          requesterId: userId,
+          addresseeId: friendId,
+          status: FriendStatus.ACCEPTED,
+        },
+        {
+          requesterId: friendId,
+          addresseeId: userId,
+          status: FriendStatus.ACCEPTED,
+        },
       ],
     });
 

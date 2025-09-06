@@ -1,8 +1,17 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsOptional, IsString, IsUUID, MinLength } from 'class-validator';
+import {
+  IsArray,
+  IsOptional,
+  IsString,
+  IsUUID,
+  MinLength,
+} from 'class-validator';
 
 export class CreateThreadDto {
-  @ApiProperty({ description: 'Thread name/title', example: 'Project Discussion' })
+  @ApiProperty({
+    description: 'Thread name/title',
+    example: 'Project Discussion',
+  })
   @IsString()
   @MinLength(1)
   name: string;

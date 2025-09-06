@@ -1,5 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsOptional, IsArray, IsObject, IsBoolean, MaxLength } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsArray,
+  IsObject,
+  IsBoolean,
+  MaxLength,
+} from 'class-validator';
 
 export class CreateNoteDto {
   @ApiProperty({ description: 'Note title', maxLength: 255 })
@@ -12,7 +19,11 @@ export class CreateNoteDto {
   @IsObject()
   content?: Record<string, any>;
 
-  @ApiProperty({ description: 'Is note public', default: false, required: false })
+  @ApiProperty({
+    description: 'Is note public',
+    default: false,
+    required: false,
+  })
   @IsOptional()
   @IsBoolean()
   isPublic?: boolean;

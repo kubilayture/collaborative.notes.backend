@@ -1,8 +1,18 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { Note, NotePermission, NoteRole, User } from '../entities';
-import { CreateNoteDto, UpdateNoteDto, NotesQueryDto, NoteResponseDto, PaginatedNotesResponseDto } from './dto';
+import {
+  CreateNoteDto,
+  UpdateNoteDto,
+  NotesQueryDto,
+  NoteResponseDto,
+  PaginatedNotesResponseDto,
+} from './dto';
 import { plainToClass } from 'class-transformer';
 
 @Injectable()
@@ -16,7 +26,10 @@ export class NotesService {
     private readonly userRepository: Repository<User>,
   ) {}
 
-  async create(userId: string, createNoteDto: CreateNoteDto): Promise<NoteResponseDto> {
+  async create(
+    userId: string,
+    createNoteDto: CreateNoteDto,
+  ): Promise<NoteResponseDto> {
     const note = await this.noteRepository.save({
       ...createNoteDto,
       ownerId: userId,
@@ -34,23 +47,39 @@ export class NotesService {
     return this.findById(note.id, userId);
   }
 
-  async findAll(userId: string, query: NotesQueryDto): Promise<PaginatedNotesResponseDto> {
-    const { mine = true, shared = true, page = 1, limit = 10, search, tag } = query;
-    
-    let queryBuilder = this.noteRepository
+  async findAll(
+    userId: string,
+    query: NotesQueryDto,
+  ): Promise<PaginatedNotesResponseDto> {
+    const {
+      mine = true,
+      shared = true,
+      page = 1,
+      limit = 10,
+      search,
+      tag,
+    } = query;
+
+    const queryBuilder = this.noteRepository
       .createQueryBuilder('note')
       .leftJoinAndSelect('note.owner', 'owner')
-      .leftJoin('note_permissions', 'permission', 'permission.noteId = note.id');
+      .leftJoin(
+        'note_permissions',
+        'permission',
+        'permission.noteId = note.id',
+      );
 
     // Apply access filters
     const conditions: string[] = [];
-    
+
     if (mine) {
       conditions.push('note.ownerId = :userId');
     }
-    
+
     if (shared) {
-      conditions.push('(permission.userId = :userId AND permission.role != :ownerRole)');
+      conditions.push(
+        '(permission.userId = :userId AND permission.role != :ownerRole)',
+      );
     }
 
     if (conditions.length > 0) {
@@ -67,7 +96,7 @@ export class NotesService {
     if (search) {
       queryBuilder.andWhere(
         '(note.title ILIKE :search OR note.content::text ILIKE :search)',
-        { search: `%${search}%` }
+        { search: `%${search}%` },
       );
     }
 
@@ -90,7 +119,7 @@ export class NotesService {
     const hasPrev = page > 1;
 
     return plainToClass(PaginatedNotesResponseDto, {
-      notes: notes.map(note => plainToClass(NoteResponseDto, note)),
+      notes: notes.map((note) => plainToClass(NoteResponseDto, note)),
       total,
       page,
       limit,
@@ -125,9 +154,13 @@ export class NotesService {
     return plainToClass(NoteResponseDto, note);
   }
 
-  async update(id: string, userId: string, updateNoteDto: UpdateNoteDto): Promise<NoteResponseDto> {
+  async update(
+    id: string,
+    userId: string,
+    updateNoteDto: UpdateNoteDto,
+  ): Promise<NoteResponseDto> {
     const note = await this.noteRepository.findOne({ where: { id } });
-    
+
     if (!note) {
       throw new NotFoundException('Note not found');
     }
@@ -138,19 +171,24 @@ export class NotesService {
         where: { noteId: id, userId },
       });
 
-      if (!permission || ![NoteRole.OWNER, NoteRole.EDITOR].includes(permission.role)) {
-        throw new ForbiddenException('You do not have edit access to this note');
+      if (
+        !permission ||
+        ![NoteRole.OWNER, NoteRole.EDITOR].includes(permission.role)
+      ) {
+        throw new ForbiddenException(
+          'You do not have edit access to this note',
+        );
       }
     }
 
     await this.noteRepository.update(id, updateNoteDto);
-    
+
     return this.findById(id, userId);
   }
 
   async remove(id: string, userId: string): Promise<void> {
     const note = await this.noteRepository.findOne({ where: { id } });
-    
+
     if (!note) {
       throw new NotFoundException('Note not found');
     }
@@ -165,7 +203,7 @@ export class NotesService {
 
   async checkAccess(noteId: string, userId: string): Promise<NoteRole | null> {
     const note = await this.noteRepository.findOne({ where: { id: noteId } });
-    
+
     if (!note) {
       return null;
     }

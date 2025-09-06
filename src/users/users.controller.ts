@@ -36,7 +36,9 @@ export class UsersController {
     description: 'Current user data with profile',
     type: CombinedUserResponseDto,
   })
-  async getCurrentUser(@CurrentUser() user: any): Promise<CombinedUserResponseDto> {
+  async getCurrentUser(
+    @CurrentUser() user: any,
+  ): Promise<CombinedUserResponseDto> {
     return this.usersService.getCurrentUser(user.id);
   }
 
@@ -57,7 +59,12 @@ export class UsersController {
   @Get('search')
   @ApiOperation({ summary: 'Search users by name or email' })
   @ApiQuery({ name: 'q', description: 'Search query' })
-  @ApiQuery({ name: 'limit', description: 'Result limit', required: false, type: Number })
+  @ApiQuery({
+    name: 'limit',
+    description: 'Result limit',
+    required: false,
+    type: Number,
+  })
   @ApiResponse({
     status: 200,
     description: 'Search results',

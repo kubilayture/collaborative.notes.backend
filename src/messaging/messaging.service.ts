@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { MessageThread, Message, User } from '../entities';
@@ -25,7 +30,10 @@ export class MessagingService {
     private readonly friendsService: FriendsService,
   ) {}
 
-  async createThread(userId: string, createThreadDto: CreateThreadDto): Promise<ThreadResponseDto> {
+  async createThread(
+    userId: string,
+    createThreadDto: CreateThreadDto,
+  ): Promise<ThreadResponseDto> {
     const { name, participantIds, initialMessage } = createThreadDto;
 
     // Verify all participants exist and are friends with the creator
@@ -40,9 +48,14 @@ export class MessagingService {
     // Check if creator is friends with all participants
     for (const participantId of participantIds) {
       if (participantId !== userId) {
-        const areFriends = await this.friendsService.areFriends(userId, participantId);
+        const areFriends = await this.friendsService.areFriends(
+          userId,
+          participantId,
+        );
         if (!areFriends) {
-          throw new ForbiddenException(`You are not friends with user ${participantId}`);
+          throw new ForbiddenException(
+            `You are not friends with user ${participantId}`,
+          );
         }
       }
     }
@@ -82,13 +95,16 @@ export class MessagingService {
       .getMany();
 
     const threadResponses = await Promise.all(
-      threads.map(thread => this.getThreadById(thread.id, userId))
+      threads.map((thread) => this.getThreadById(thread.id, userId)),
     );
 
     return threadResponses;
   }
 
-  async getThreadById(threadId: string, userId: string): Promise<ThreadResponseDto> {
+  async getThreadById(
+    threadId: string,
+    userId: string,
+  ): Promise<ThreadResponseDto> {
     const thread = await this.threadRepository.findOne({
       where: { id: threadId },
       relations: ['creator'],
@@ -108,12 +124,12 @@ export class MessagingService {
       where: { id: In(thread.participantIds) },
     });
 
-    const participantDtos = participants.map(user => 
+    const participantDtos = participants.map((user) =>
       plainToClass(ThreadParticipantDto, {
         user,
         joinedAt: thread.createdAt, // For now, all join at thread creation
         lastReadAt: null, // TODO: Implement read tracking
-      })
+      }),
     );
 
     // Get latest message info
@@ -138,7 +154,11 @@ export class MessagingService {
     });
   }
 
-  async sendMessage(userId: string, threadId: string, sendMessageDto: SendMessageDto): Promise<MessageResponseDto> {
+  async sendMessage(
+    userId: string,
+    threadId: string,
+    sendMessageDto: SendMessageDto,
+  ): Promise<MessageResponseDto> {
     const { content, replyToId } = sendMessageDto;
 
     // Check if thread exists and user is participant
@@ -161,7 +181,9 @@ export class MessagingService {
       });
 
       if (!replyToMessage) {
-        throw new BadRequestException('Reply-to message not found in this thread');
+        throw new BadRequestException(
+          'Reply-to message not found in this thread',
+        );
       }
     }
 
@@ -206,9 +228,9 @@ export class MessagingService {
     });
 
     // Reverse to show messages in chronological order
-    const messagesDto = messages.reverse().map(message =>
-      plainToClass(MessageResponseDto, message)
-    );
+    const messagesDto = messages
+      .reverse()
+      .map((message) => plainToClass(MessageResponseDto, message));
 
     return plainToClass(MessagesListResponseDto, {
       messages: messagesDto,
@@ -219,7 +241,11 @@ export class MessagingService {
     });
   }
 
-  async editMessage(userId: string, messageId: string, content: string): Promise<MessageResponseDto> {
+  async editMessage(
+    userId: string,
+    messageId: string,
+    content: string,
+  ): Promise<MessageResponseDto> {
     const message = await this.messageRepository.findOne({
       where: { id: messageId },
       relations: ['thread'],
@@ -278,7 +304,11 @@ export class MessagingService {
     await this.messageRepository.remove(message);
   }
 
-  async addParticipant(userId: string, threadId: string, participantId: string): Promise<ThreadResponseDto> {
+  async addParticipant(
+    userId: string,
+    threadId: string,
+    participantId: string,
+  ): Promise<ThreadResponseDto> {
     const thread = await this.threadRepository.findOne({
       where: { id: threadId },
     });
@@ -288,8 +318,13 @@ export class MessagingService {
     }
 
     // Check if user is the creator or existing participant
-    if (thread.creatorId !== userId && !thread.participantIds.includes(userId)) {
-      throw new ForbiddenException('Only thread creator or participants can add new members');
+    if (
+      thread.creatorId !== userId &&
+      !thread.participantIds.includes(userId)
+    ) {
+      throw new ForbiddenException(
+        'Only thread creator or participants can add new members',
+      );
     }
 
     // Check if new participant exists
@@ -307,7 +342,10 @@ export class MessagingService {
     }
 
     // Check if creator/adder is friends with the new participant
-    const areFriends = await this.friendsService.areFriends(userId, participantId);
+    const areFriends = await this.friendsService.areFriends(
+      userId,
+      participantId,
+    );
     if (!areFriends) {
       throw new ForbiddenException('You can only add friends to threads');
     }
@@ -333,7 +371,7 @@ export class MessagingService {
     }
 
     // Remove user from participants
-    thread.participantIds = thread.participantIds.filter(id => id !== userId);
+    thread.participantIds = thread.participantIds.filter((id) => id !== userId);
 
     // If no participants left, delete the thread
     if (thread.participantIds.length === 0) {

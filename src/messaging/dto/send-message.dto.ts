@@ -7,7 +7,10 @@ export class SendMessageDto {
   @MinLength(1)
   content: string;
 
-  @ApiProperty({ description: 'ID of message being replied to', required: false })
+  @ApiProperty({
+    description: 'ID of message being replied to',
+    required: false,
+  })
   @IsOptional()
   @IsUUID()
   replyToId?: string;

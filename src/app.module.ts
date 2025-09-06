@@ -10,6 +10,7 @@ import { UsersModule } from './users/users.module';
 import { NotesModule } from './notes/notes.module';
 import { FriendsModule } from './friends/friends.module';
 import { MessagingModule } from './messaging/messaging.module';
+import { WebSocketModule } from './websocket/websocket.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { MessagingModule } from './messaging/messaging.module';
     NotesModule,
     FriendsModule,
     MessagingModule,
+    WebSocketModule,
   ],
   controllers: [AppController],
   providers: [AppService],

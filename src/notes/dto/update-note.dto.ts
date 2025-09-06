@@ -1,5 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsOptional, IsArray, IsObject, IsBoolean, MaxLength } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsArray,
+  IsObject,
+  IsBoolean,
+  MaxLength,
+} from 'class-validator';
 
 export class UpdateNoteDto {
   @ApiProperty({ description: 'Note title', maxLength: 255, required: false })

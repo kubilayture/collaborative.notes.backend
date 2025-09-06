@@ -6,7 +6,10 @@ export class SendFriendRequestDto {
   @IsEmail()
   email: string;
 
-  @ApiProperty({ description: 'Optional message with the request', required: false })
+  @ApiProperty({
+    description: 'Optional message with the request',
+    required: false,
+  })
   @IsOptional()
   @IsString()
   message?: string;

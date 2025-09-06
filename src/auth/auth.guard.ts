@@ -10,7 +10,7 @@ import { auth } from '../lib/auth';
 export class AuthGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    
+
     try {
       const session = await auth.api.getSession({
         headers: request.headers,

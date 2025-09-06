@@ -6,10 +6,7 @@ import { Friend, User, UserProfile } from '../entities';
 import { UsersModule } from '../users/users.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Friend, User, UserProfile]),
-    UsersModule,
-  ],
+  imports: [TypeOrmModule.forFeature([Friend, User, UserProfile]), UsersModule],
   controllers: [FriendsController],
   providers: [FriendsService],
   exports: [FriendsService],

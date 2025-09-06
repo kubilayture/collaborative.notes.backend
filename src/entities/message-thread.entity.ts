@@ -37,7 +37,7 @@ export class MessageThread {
   @Column({ type: 'text', nullable: true })
   lastMessagePreview: string | null;
 
-  @OneToMany(() => Message, message => message.thread)
+  @OneToMany(() => Message, (message) => message.thread)
   messages: Message[];
 
   @CreateDateColumn()

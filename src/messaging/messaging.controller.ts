@@ -13,7 +13,13 @@ import {
   ParseIntPipe,
   DefaultValuePipe,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { MessagingService } from './messaging.service';
 import { AuthGuard } from '../auth/auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
@@ -34,9 +40,19 @@ export class MessagingController {
 
   @Post('threads')
   @ApiOperation({ summary: 'Create a new message thread' })
-  @ApiResponse({ status: 201, description: 'Thread created successfully', type: ThreadResponseDto })
-  @ApiResponse({ status: 400, description: 'Invalid participants or not friends' })
-  @ApiResponse({ status: 403, description: 'Not friends with some participants' })
+  @ApiResponse({
+    status: 201,
+    description: 'Thread created successfully',
+    type: ThreadResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid participants or not friends',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Not friends with some participants',
+  })
   async createThread(
     @CurrentUser('id') userId: string,
     @Body() createThreadDto: CreateThreadDto,
@@ -46,14 +62,24 @@ export class MessagingController {
 
   @Get('threads')
   @ApiOperation({ summary: 'Get user message threads' })
-  @ApiResponse({ status: 200, description: 'Threads retrieved', type: [ThreadResponseDto] })
-  async getThreads(@CurrentUser('id') userId: string): Promise<ThreadResponseDto[]> {
+  @ApiResponse({
+    status: 200,
+    description: 'Threads retrieved',
+    type: [ThreadResponseDto],
+  })
+  async getThreads(
+    @CurrentUser('id') userId: string,
+  ): Promise<ThreadResponseDto[]> {
     return this.messagingService.getThreads(userId);
   }
 
   @Get('threads/:threadId')
   @ApiOperation({ summary: 'Get thread details' })
-  @ApiResponse({ status: 200, description: 'Thread details', type: ThreadResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Thread details',
+    type: ThreadResponseDto,
+  })
   @ApiResponse({ status: 403, description: 'Not a participant in this thread' })
   @ApiResponse({ status: 404, description: 'Thread not found' })
   async getThread(
@@ -65,7 +91,11 @@ export class MessagingController {
 
   @Post('threads/:threadId/messages')
   @ApiOperation({ summary: 'Send a message to thread' })
-  @ApiResponse({ status: 201, description: 'Message sent successfully', type: MessageResponseDto })
+  @ApiResponse({
+    status: 201,
+    description: 'Message sent successfully',
+    type: MessageResponseDto,
+  })
   @ApiResponse({ status: 403, description: 'Not a participant in this thread' })
   @ApiResponse({ status: 404, description: 'Thread not found' })
   async sendMessage(
@@ -78,9 +108,23 @@ export class MessagingController {
 
   @Get('threads/:threadId/messages')
   @ApiOperation({ summary: 'Get messages from thread' })
-  @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number (default: 1)' })
-  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Messages per page (default: 50)' })
-  @ApiResponse({ status: 200, description: 'Messages retrieved', type: MessagesListResponseDto })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    type: Number,
+    description: 'Page number (default: 1)',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Messages per page (default: 50)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Messages retrieved',
+    type: MessagesListResponseDto,
+  })
   @ApiResponse({ status: 403, description: 'Not a participant in this thread' })
   @ApiResponse({ status: 404, description: 'Thread not found' })
   async getMessages(
@@ -94,7 +138,11 @@ export class MessagingController {
 
   @Put('messages/:messageId')
   @ApiOperation({ summary: 'Edit a message' })
-  @ApiResponse({ status: 200, description: 'Message updated successfully', type: MessageResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Message updated successfully',
+    type: MessageResponseDto,
+  })
   @ApiResponse({ status: 403, description: 'Can only edit your own messages' })
   @ApiResponse({ status: 404, description: 'Message not found' })
   async editMessage(
@@ -109,7 +157,10 @@ export class MessagingController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete a message' })
   @ApiResponse({ status: 204, description: 'Message deleted successfully' })
-  @ApiResponse({ status: 403, description: 'Can only delete your own messages' })
+  @ApiResponse({
+    status: 403,
+    description: 'Can only delete your own messages',
+  })
   @ApiResponse({ status: 404, description: 'Message not found' })
   async deleteMessage(
     @CurrentUser('id') userId: string,
@@ -120,16 +171,27 @@ export class MessagingController {
 
   @Post('threads/:threadId/participants/:participantId')
   @ApiOperation({ summary: 'Add participant to thread' })
-  @ApiResponse({ status: 200, description: 'Participant added successfully', type: ThreadResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Participant added successfully',
+    type: ThreadResponseDto,
+  })
   @ApiResponse({ status: 400, description: 'User already a participant' })
-  @ApiResponse({ status: 403, description: 'Not authorized or not friends with participant' })
+  @ApiResponse({
+    status: 403,
+    description: 'Not authorized or not friends with participant',
+  })
   @ApiResponse({ status: 404, description: 'Thread or user not found' })
   async addParticipant(
     @CurrentUser('id') userId: string,
     @Param('threadId') threadId: string,
     @Param('participantId') participantId: string,
   ): Promise<ThreadResponseDto> {
-    return this.messagingService.addParticipant(userId, threadId, participantId);
+    return this.messagingService.addParticipant(
+      userId,
+      threadId,
+      participantId,
+    );
   }
 
   @Delete('threads/:threadId/leave')

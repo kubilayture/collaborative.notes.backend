@@ -40,30 +40,33 @@ export class UsersService {
     });
   }
 
-  async searchUsers(query: string, limit = 10): Promise<CombinedUserResponseDto[]> {
+  async searchUsers(
+    query: string,
+    limit = 10,
+  ): Promise<CombinedUserResponseDto[]> {
     const users = await this.userRepository.find({
-      where: [
-        { name: Like(`%${query}%`) },
-        { email: Like(`%${query}%`) },
-      ],
+      where: [{ name: Like(`%${query}%`) }, { email: Like(`%${query}%`) }],
       take: limit,
     });
 
-    const userIds = users.map(u => u.id);
+    const userIds = users.map((u) => u.id);
     const profiles = await this.profileRepository.find({
       where: { userId: In(userIds) },
     });
 
-    const profilesMap = profiles.reduce((acc, profile) => {
-      acc[profile.userId] = profile;
-      return acc;
-    }, {} as Record<string, UserProfile>);
+    const profilesMap = profiles.reduce(
+      (acc, profile) => {
+        acc[profile.userId] = profile;
+        return acc;
+      },
+      {} as Record<string, UserProfile>,
+    );
 
-    return users.map(user => 
+    return users.map((user) =>
       plainToClass(CombinedUserResponseDto, {
         ...user,
         profile: profilesMap[user.id] || undefined,
-      })
+      }),
     );
   }
 
