@@ -13,6 +13,7 @@ import {
   NoteResponseDto,
   PaginatedNotesResponseDto,
 } from './dto';
+import { UserResponseDto } from '../users/dto';
 import { plainToClass } from 'class-transformer';
 
 @Injectable()
@@ -114,12 +115,44 @@ export class NotesService {
 
     const [notes, total] = await queryBuilder.getManyAndCount();
 
+    // Load permissions for all notes
+    const noteIds = notes.map(note => note.id);
+    const permissions = noteIds.length > 0 
+      ? await this.notePermissionRepository
+          .createQueryBuilder('permission')
+          .leftJoinAndSelect('permission.user', 'user')
+          .where('permission.noteId IN (:...noteIds)', { noteIds })
+          .andWhere('permission.role != :ownerRole', { ownerRole: NoteRole.OWNER })
+          .getMany()
+      : [];
+
+    // Group permissions by note ID
+    const permissionsByNoteId = permissions.reduce((acc, permission) => {
+      if (!acc[permission.noteId]) {
+        acc[permission.noteId] = [];
+      }
+      acc[permission.noteId].push({
+        id: permission.id,
+        permission: permission.role === NoteRole.EDITOR ? 'WRITE' : 'READ',
+        userId: permission.userId,
+        grantedById: permission.grantedById || '',
+        user: permission.user ? plainToClass(UserResponseDto, permission.user) : undefined,
+        createdAt: permission.createdAt,
+        updatedAt: permission.updatedAt,
+      });
+      return acc;
+    }, {} as Record<string, any[]>);
+
     const pages = Math.ceil(total / limit);
     const hasNext = page < pages;
     const hasPrev = page > 1;
 
     return plainToClass(PaginatedNotesResponseDto, {
-      notes: notes.map((note) => plainToClass(NoteResponseDto, note)),
+      notes: notes.map((note) => {
+        const result = plainToClass(NoteResponseDto, note);
+        result.permissions = permissionsByNoteId[note.id] || [];
+        return result;
+      }),
       total,
       page,
       limit,
@@ -151,7 +184,26 @@ export class NotesService {
       }
     }
 
-    return plainToClass(NoteResponseDto, note);
+    // Load permissions with user details (excluding owner permissions)
+    const permissions = await this.notePermissionRepository
+      .createQueryBuilder('permission')
+      .leftJoinAndSelect('permission.user', 'user')
+      .where('permission.noteId = :noteId', { noteId: id })
+      .andWhere('permission.role != :ownerRole', { ownerRole: NoteRole.OWNER })
+      .getMany();
+
+    const result = plainToClass(NoteResponseDto, note);
+    result.permissions = permissions.map(permission => ({
+      id: permission.id,
+      permission: permission.role === NoteRole.EDITOR ? 'WRITE' : 'READ',
+      userId: permission.userId,
+      grantedById: permission.grantedById || '',
+      user: permission.user ? plainToClass(UserResponseDto, permission.user) : undefined,
+      createdAt: permission.createdAt,
+      updatedAt: permission.updatedAt,
+    }));
+
+    return result;
   }
 
   async update(

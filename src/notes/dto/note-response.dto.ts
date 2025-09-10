@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
 import { UserResponseDto } from '../../users/dto';
+import { NotePermissionResponseDto } from './note-permission-response.dto';
 
 export class NoteResponseDto {
   @ApiProperty({ description: 'Note ID' })
@@ -42,4 +43,12 @@ export class NoteResponseDto {
   @ApiProperty({ description: 'Note last update timestamp' })
   @Expose()
   updatedAt: Date;
+
+  @ApiProperty({
+    description: 'Note permissions',
+    type: [NotePermissionResponseDto],
+    required: false,
+  })
+  @Expose()
+  permissions?: NotePermissionResponseDto[];
 }
