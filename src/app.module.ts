@@ -11,6 +11,8 @@ import { NotesModule } from './notes/notes.module';
 import { FriendsModule } from './friends/friends.module';
 import { MessagingModule } from './messaging/messaging.module';
 import { WebSocketModule } from './websocket/websocket.module';
+import { CollaborationModule } from './collaboration/collaboration.module';
+import { InvitationsModule } from './invitations/invitations.module';
 
 @Module({
   imports: [
@@ -25,6 +27,8 @@ import { WebSocketModule } from './websocket/websocket.module';
     FriendsModule,
     MessagingModule,
     WebSocketModule,
+    CollaborationModule,
+    InvitationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -284,4 +284,29 @@ export class NotesService {
     const role = await this.checkAccess(noteId, userId);
     return role !== null;
   }
+
+  async updateContent(noteId: string, content: string, userId?: string): Promise<void> {
+    const note = await this.noteRepository.findOne({ where: { id: noteId } });
+
+    if (!note) {
+      throw new NotFoundException('Note not found');
+    }
+
+    // If userId is provided, check edit access
+    if (userId && !(await this.hasEditAccess(noteId, userId))) {
+      throw new ForbiddenException('You do not have edit access to this note');
+    }
+
+    // Convert string content to the expected JSON format
+    let contentJson: Record<string, any> | null;
+    try {
+      // Try to parse as JSON first
+      contentJson = JSON.parse(content);
+    } catch {
+      // If it's not JSON, store as plain text in a structured format
+      contentJson = { text: content };
+    }
+
+    await this.noteRepository.update(noteId, { content: contentJson });
+  }
 }
