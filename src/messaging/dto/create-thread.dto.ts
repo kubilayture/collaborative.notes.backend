@@ -18,7 +18,7 @@ export class CreateThreadDto {
 
   @ApiProperty({ description: 'Array of participant user IDs', type: [String] })
   @IsArray()
-  @IsUUID(4, { each: true })
+  @IsString({ each: true })
   participantIds: string[];
 
   @ApiProperty({ description: 'Initial message content', required: false })

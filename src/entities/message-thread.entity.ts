@@ -28,7 +28,7 @@ export class MessageThread {
   @JoinColumn({ name: 'creatorId' })
   creator: User;
 
-  @Column('simple-array')
+  @Column('text', { array: true })
   participantIds: string[];
 
   @Column({ type: 'timestamp', nullable: true })
