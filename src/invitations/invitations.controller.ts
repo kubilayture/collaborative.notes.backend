@@ -37,9 +37,18 @@ export class InvitationsController {
 
   @Get('note/:noteId')
   @ApiOperation({ summary: 'Get all invitations for a specific note' })
-  @ApiResponse({ status: 200, description: 'List of note invitations retrieved successfully' })
-  async getInvitationsForNote(@Request() req: any, @Param('noteId') noteId: string) {
-    return await this.invitationsService.getInvitationsForNote(noteId);
+  @ApiResponse({
+    status: 200,
+    description: 'List of note invitations retrieved successfully',
+  })
+  async getInvitationsForNote(
+    @Request() req: any,
+    @Param('noteId') noteId: string,
+  ) {
+    return await this.invitationsService.getInvitationsForNote(
+      noteId,
+      req.user.id,
+    );
   }
 
   @Post()
@@ -54,7 +63,7 @@ export class InvitationsController {
       role,
       noteTitle,
       req.user.name,
-      req.user.email
+      req.user.email,
     );
   }
 

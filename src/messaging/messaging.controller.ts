@@ -21,6 +21,7 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 import { MessagingService } from './messaging.service';
+import { CollaborationGateway } from '../websocket/websocket.gateway';
 import { AuthGuard } from '../auth/auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import {
@@ -36,7 +37,10 @@ import {
 @Controller('messaging')
 @UseGuards(AuthGuard)
 export class MessagingController {
-  constructor(private readonly messagingService: MessagingService) {}
+  constructor(
+    private readonly messagingService: MessagingService,
+    private readonly gateway: CollaborationGateway,
+  ) {}
 
   @Post('threads')
   @ApiOperation({ summary: 'Create a new message thread' })
@@ -150,7 +154,14 @@ export class MessagingController {
     @Param('messageId') messageId: string,
     @Body('content') content: string,
   ): Promise<MessageResponseDto> {
-    return this.messagingService.editMessage(userId, messageId, content);
+    const updated = await this.messagingService.editMessage(
+      userId,
+      messageId,
+      content,
+    );
+    // Emit to thread room for real-time reflection
+    this.gateway.emitToThreadRoom(updated.threadId, 'message:edited', updated);
+    return updated;
   }
 
   @Delete('messages/:messageId')
@@ -166,7 +177,12 @@ export class MessagingController {
     @CurrentUser('id') userId: string,
     @Param('messageId') messageId: string,
   ): Promise<void> {
-    return this.messagingService.deleteMessage(userId, messageId);
+    const { threadId } = await this.messagingService.deleteMessage(
+      userId,
+      messageId,
+    );
+    this.gateway.emitToThreadRoom(threadId, 'message:deleted', { messageId });
+    return;
   }
 
   @Post('threads/:threadId/participants/:participantId')

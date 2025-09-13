@@ -15,6 +15,8 @@ import {
 } from './dto';
 import { plainToClass } from 'class-transformer';
 import { UsersService } from '../users/users.service';
+import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationType } from '../entities';
 
 @Injectable()
 export class FriendsService {
@@ -26,6 +28,7 @@ export class FriendsService {
     @InjectRepository(UserProfile)
     private readonly profileRepository: Repository<UserProfile>,
     private readonly usersService: UsersService,
+    private readonly notifications: NotificationsService,
   ) {}
 
   async sendFriendRequest(
@@ -83,6 +86,16 @@ export class FriendsService {
       status: FriendStatus.PENDING,
     });
 
+    // Notify addressee
+    const requester = await this.usersService.findById(userId);
+    await this.notifications.create(
+      targetUser.id,
+      NotificationType.FRIEND_REQUEST,
+      'Friend request',
+      `${requester?.name || 'Someone'} sent you a friend request`,
+      { requesterId: userId },
+    );
+
     return this.getFriendRequestById(friendRequest.id);
   }
 
@@ -104,6 +117,15 @@ export class FriendsService {
 
     friendRequest.status = FriendStatus.ACCEPTED;
     await this.friendRepository.save(friendRequest);
+
+    // Notify requester
+    await this.notifications.create(
+      friendRequest.requesterId,
+      NotificationType.FRIEND_ACCEPTED,
+      'Friend request accepted',
+      'Your friend request was accepted',
+      { byUserId: userId },
+    );
 
     return this.getFriendRequestById(requestId);
   }

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CollaborationGateway } from './websocket.gateway';
 import { PresenceService } from './presence.service';
@@ -10,7 +10,7 @@ import { UserProfile } from '../entities';
   imports: [
     TypeOrmModule.forFeature([UserProfile]),
     NotesModule,
-    MessagingModule,
+    forwardRef(() => MessagingModule),
   ],
   providers: [CollaborationGateway, PresenceService],
   exports: [CollaborationGateway, PresenceService],

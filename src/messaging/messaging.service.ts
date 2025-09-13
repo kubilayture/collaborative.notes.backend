@@ -17,6 +17,8 @@ import {
 } from './dto';
 import { plainToClass } from 'class-transformer';
 import { FriendsService } from '../friends/friends.service';
+import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationType } from '../entities';
 
 @Injectable()
 export class MessagingService {
@@ -28,6 +30,7 @@ export class MessagingService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly friendsService: FriendsService,
+    private readonly notifications: NotificationsService,
   ) {}
 
   async createThread(
@@ -195,7 +198,23 @@ export class MessagingService {
       replyToId: replyToId || null,
     });
 
-    return this.getMessageById(message.id);
+    const dto = await this.getMessageById(message.id);
+
+    // Create notifications for other participants
+    const recipients = thread.participantIds.filter((id) => id !== userId);
+    await Promise.all(
+      recipients.map((rid) =>
+        this.notifications.create(
+          rid,
+          NotificationType.NEW_MESSAGE,
+          'New message',
+          `New message in ${thread.name || 'a conversation'}`,
+          { threadId, messageId: message.id },
+        ),
+      ),
+    );
+
+    return dto;
   }
 
   async getMessages(
@@ -277,7 +296,10 @@ export class MessagingService {
     return this.getMessageById(messageId);
   }
 
-  async deleteMessage(userId: string, messageId: string): Promise<void> {
+  async deleteMessage(
+    userId: string,
+    messageId: string,
+  ): Promise<{ threadId: string }> {
     const message = await this.messageRepository.findOne({
       where: { id: messageId },
       relations: ['thread'],
@@ -302,6 +324,7 @@ export class MessagingService {
     }
 
     await this.messageRepository.remove(message);
+    return { threadId: message.threadId };
   }
 
   async addParticipant(

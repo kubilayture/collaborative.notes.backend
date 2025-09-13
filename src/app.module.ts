@@ -13,6 +13,7 @@ import { MessagingModule } from './messaging/messaging.module';
 import { WebSocketModule } from './websocket/websocket.module';
 import { CollaborationModule } from './collaboration/collaboration.module';
 import { InvitationsModule } from './invitations/invitations.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { InvitationsModule } from './invitations/invitations.module';
     WebSocketModule,
     CollaborationModule,
     InvitationsModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

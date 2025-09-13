@@ -105,6 +105,9 @@ export class CollaborationGateway
       }
       this.userSockets.get(userId)!.push(client.id);
 
+      // Join a personal room for cross-gateway notifications
+      await client.join(`user:${userId}`);
+
       // Update presence only on first connection
       if (isFirstConnection) {
         await this.presenceService.setUserOnline(userId);
