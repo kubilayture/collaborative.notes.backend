@@ -12,6 +12,7 @@ import { User } from './user.entity';
 
 @Entity('notes')
 @Index(['ownerId'])
+@Index(['folderId'])
 @Index(['createdAt'])
 export class Note {
   @PrimaryGeneratedColumn('uuid')
@@ -25,6 +26,9 @@ export class Note {
 
   @Column({ type: 'text' })
   ownerId: string;
+
+  @Column({ type: 'uuid', nullable: true })
+  folderId?: string;
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'ownerId' })

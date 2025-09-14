@@ -8,6 +8,7 @@ import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './auth';
 import { UsersModule } from './users/users.module';
 import { NotesModule } from './notes/notes.module';
+import { FoldersModule } from './folders/folders.module';
 import { FriendsModule } from './friends/friends.module';
 import { MessagingModule } from './messaging/messaging.module';
 import { WebSocketModule } from './websocket/websocket.module';
@@ -25,6 +26,7 @@ import { NotificationsModule } from './notifications/notifications.module';
     AuthModule,
     UsersModule,
     NotesModule,
+    FoldersModule,
     FriendsModule,
     MessagingModule,
     WebSocketModule,

@@ -1,10 +1,11 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsString,
   IsOptional,
   IsArray,
   IsObject,
   IsBoolean,
+  IsUUID,
   MaxLength,
 } from 'class-validator';
 
@@ -38,4 +39,9 @@ export class CreateNoteDto {
   @IsOptional()
   @IsObject()
   metadata?: Record<string, any>;
+
+  @ApiPropertyOptional({ description: 'Folder ID to place the note in' })
+  @IsOptional()
+  @IsUUID()
+  folderId?: string;
 }

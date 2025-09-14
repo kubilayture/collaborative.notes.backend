@@ -26,6 +26,7 @@ import {
   NotesQueryDto,
   PaginatedNotesResponseDto,
 } from './dto';
+import { MoveNoteDto } from '../folders/dto';
 
 @ApiTags('Notes')
 @Controller('notes')
@@ -107,6 +108,30 @@ export class NotesController {
     @Body() updateNoteDto: UpdateNoteDto,
   ): Promise<NoteResponseDto> {
     return this.notesService.update(id, user.id, updateNoteDto);
+  }
+
+  @Patch(':id/move')
+  @ApiOperation({ summary: 'Move a note to a different folder' })
+  @ApiParam({ name: 'id', description: 'Note ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'The note has been successfully moved',
+    type: NoteResponseDto,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Note not found',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'You do not have edit access to this note',
+  })
+  async moveNote(
+    @CurrentUser() user: any,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() moveNoteDto: MoveNoteDto,
+  ): Promise<NoteResponseDto> {
+    return this.notesService.moveNote(id, user.id, moveNoteDto.folderId);
   }
 
   @Delete(':id')
