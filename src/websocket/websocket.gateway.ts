@@ -390,17 +390,15 @@ export class CollaborationGateway
 
   // Public methods for other services to emit events
   emitToUser(userId: string, event: string, data: any) {
-    const socketIds = this.userSockets.get(userId) || [];
-    socketIds.forEach((socketId) => {
-      this.server.to(socketId).emit(event, data);
-    });
+    // Emit to the user's personal room
+    this.server.to(`user:${userId}`).emit(event, data);
   }
 
   emitToNoteRoom(noteId: string, event: string, data: any) {
     this.server.to(`note:${noteId}`).emit(event, data);
   }
 
-  emitToThreadRoom(_threadId: string, event: string, data: any) {
-    this.server.to(`thread:${_threadId}`).emit(event, data);
+  emitToThreadRoom(threadId: string, event: string, data: any) {
+    this.server.to(`thread:${threadId}`).emit(event, data);
   }
 }
