@@ -17,9 +17,13 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "migration:generate": "typeorm-ts-node-commonjs migration:generate -d ormconfig.ts",
+    "migration:run": "typeorm-ts-node-commonjs migration:run -d ormconfig.ts",
+    "migration:revert": "typeorm-ts-node-commonjs migration:revert -d ormconfig.ts"
   },
   "dependencies": {
+    "@hocuspocus/server": "^3.2.3",
     "@nestjs/axios": "^4.0.1",
     "@nestjs/cache-manager": "^3.0.1",
     "@nestjs/common": "^11.0.1",
@@ -47,8 +51,10 @@
     "pg": "^8.16.3",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
+    "socket.io": "^4.8.1",
     "swagger-ui-express": "^5.0.1",
-    "typeorm": "^0.3.26"
+    "typeorm": "^0.3.26",
+    "yjs": "^13.6.27"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
