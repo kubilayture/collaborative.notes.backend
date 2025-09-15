@@ -4,7 +4,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, SelectQueryBuilder } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Note, NotePermission, NoteRole, User } from '../entities';
 import {
   CreateNoteDto,
@@ -59,6 +59,7 @@ export class NotesService {
       limit = 10,
       search,
       tag,
+      folderId,
     } = query;
 
     const queryBuilder = this.noteRepository
@@ -104,6 +105,17 @@ export class NotesService {
     // Apply tag filter
     if (tag) {
       queryBuilder.andWhere(':tag = ANY(note.tags)', { tag });
+    }
+
+    // Apply folder filter
+    if (folderId !== undefined) {
+      if (folderId === 'null' || folderId === null) {
+        // Get notes not in any folder
+        queryBuilder.andWhere('note.folderId IS NULL');
+      } else {
+        // Get notes in specific folder
+        queryBuilder.andWhere('note.folderId = :folderId', { folderId });
+      }
     }
 
     // Order by updated date (most recent first)

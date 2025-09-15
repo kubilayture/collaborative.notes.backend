@@ -71,4 +71,12 @@ export class NotesQueryDto {
   @IsOptional()
   @IsString()
   tag?: string;
+
+  @ApiProperty({
+    description: 'Filter by folder ID. Use null to get notes not in any folder',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  folderId?: string;
 }

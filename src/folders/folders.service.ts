@@ -66,7 +66,23 @@ export class FoldersService {
   ): Promise<FolderResponseDto[]> {
     const queryBuilder = this.foldersRepository
       .createQueryBuilder('folder')
+      .leftJoin('notes', 'note', 'note.folderId = folder.id')
+      .leftJoin('folders', 'subfolder', 'subfolder.parentId = folder.id')
+      .select([
+        'folder.id',
+        'folder.name',
+        'folder.description',
+        'folder.color',
+        'folder.ownerId',
+        'folder.parentId',
+        'folder.isSystem',
+        'folder.createdAt',
+        'folder.updatedAt',
+        'COUNT(DISTINCT note.id) as noteCount',
+        'COUNT(DISTINCT subfolder.id) as subfolderCount',
+      ])
       .where('folder.ownerId = :userId', { userId })
+      .groupBy('folder.id')
       .orderBy('folder.name', 'ASC');
 
     if (parentId !== undefined) {
@@ -75,9 +91,21 @@ export class FoldersService {
       queryBuilder.andWhere('folder.parentId IS NULL');
     }
 
-    const folders = await queryBuilder.getMany();
+    const folders = await queryBuilder.getRawMany();
 
-    return folders.map((folder) => this.mapToResponseDto(folder));
+    return folders.map((folder) => ({
+      id: folder.folder_id,
+      name: folder.folder_name,
+      description: folder.folder_description,
+      color: folder.folder_color,
+      ownerId: folder.folder_ownerId,
+      parentId: folder.folder_parentId,
+      isSystem: folder.folder_isSystem,
+      createdAt: folder.folder_createdAt,
+      updatedAt: folder.folder_updatedAt,
+      noteCount: parseInt(folder.notecount) || 0,
+      subfolderCount: parseInt(folder.subfoldercount) || 0,
+    }));
   }
 
   async findOne(id: string, userId: string): Promise<FolderResponseDto> {
