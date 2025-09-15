@@ -1,98 +1,153 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Collaborative Notes Backend 🚀
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![NestJS](https://img.shields.io/badge/nestjs-%23E0234E.svg?style=for-the-badge&logo=nestjs&logoColor=white)](https://nestjs.com/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Socket.io](https://img.shields.io/badge/Socket.io-black?style=for-the-badge&logo=socket.io&badgeColor=010101)](https://socket.io/)
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## 📖 About
 
-## Description
+The backend API for my collaborative notes application - a robust NestJS server that powers real-time note editing, user authentication, and hierarchical folder management. Built to handle multiple users collaborating on documents simultaneously with seamless real-time synchronization.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## ✨ Features
 
-## Project setup
+- 🔐 **Secure Authentication** - Better Auth integration with session management
+- 📁 **Hierarchical Folders** - Nested folder structure with unlimited depth
+- 📝 **Real-time Collaboration** - Live note editing with Socket.io
+- 💬 **Real-time Messaging** - Built-in chat system for collaborators
+- 📊 **RESTful API** - Clean, documented endpoints with Swagger
+- 🔒 **Security First** - Helmet middleware, CORS, input validation
+- 🗃️ **PostgreSQL Database** - Reliable data persistence with connection pooling
+- 📋 **API Documentation** - Auto-generated Swagger docs
+
+## 🛠️ Tech Stack
+
+- **Framework**: NestJS (Node.js)
+- **Language**: TypeScript
+- **Database**: PostgreSQL
+- **Authentication**: Better Auth
+- **Real-time**: Socket.io
+- **Validation**: class-validator, class-transformer
+- **Documentation**: Swagger/OpenAPI
+- **Security**: Helmet, CORS
+- **Testing**: Jest
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Node.js (v18 or higher)
+- PostgreSQL database
+- npm or yarn
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd collaborative.notes.backend
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Environment Setup**
+
+   Create a `.env` file in the root directory:
+   ```env
+   # Database Configuration
+   DB_HOST=localhost
+   DB_PORT=5432
+   DB_USERNAME=your_db_username
+   DB_PASSWORD=your_db_password
+   DB_NAME=collaborative_notes
+
+   # Authentication
+   BETTER_AUTH_SECRET=your_secret_key_here
+
+   # Server Configuration
+   PORT=4000
+   FRONTEND_URL=http://localhost:5173
+   ```
+
+4. **Database Setup**
+
+   Make sure PostgreSQL is running and create the database:
+   ```sql
+   CREATE DATABASE collaborative_notes;
+   ```
+
+5. **Start the server**
+   ```bash
+   # Development with hot reload
+   npm run start:dev
+
+   # Production build
+   npm run build
+   npm run start:prod
+   ```
+
+## 📚 API Documentation
+
+Once the server is running, visit:
+- **Swagger UI**: http://localhost:4000/api
+- **API Base URL**: http://localhost:4000
+
+## 🧪 Testing
 
 ```bash
-$ npm install
+# Run unit tests
+npm run test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run e2e tests
+npm run test:e2e
+
+# Generate test coverage
+npm run test:cov
 ```
 
-## Compile and run the project
+## 🏗️ Project Structure
+
+```
+src/
+├── lib/                 # Shared utilities and configurations
+│   └── auth.ts         # Better Auth configuration
+├── modules/            # Feature modules (when added)
+├── main.ts            # Application entry point
+└── app.module.ts      # Root module
+
+test/                  # E2E tests
+```
+
+## 🔧 Development Scripts
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+npm run start:dev      # Start development server with hot reload
+npm run build          # Build for production
+npm run start:prod     # Start production server
+npm run lint           # Run ESLint with auto-fix
+npm run format         # Run Prettier formatting
+npm run test           # Run unit tests
+npm run test:e2e       # Run end-to-end tests
 ```
 
-## Run tests
+## 🌐 Related Projects
 
-```bash
-# unit tests
-$ npm run test
+- **Frontend**: [Collaborative Notes Web](../collaborative.notes.web) - React frontend application
 
-# e2e tests
-$ npm run test:e2e
+## 📝 License
 
-# test coverage
-$ npm run test:cov
-```
+This project is part of my personal portfolio. Feel free to explore the code!
 
-## Deployment
+## 🤝 Contributing
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+This is a personal project, but I'm open to suggestions and feedback. Feel free to open an issue or reach out!
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+---
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Built with ❤️ using NestJS and TypeScript
