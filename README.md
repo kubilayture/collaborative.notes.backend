@@ -43,12 +43,14 @@ The backend API for my collaborative notes application - a robust NestJS server 
 ### Installation
 
 1. **Clone the repository**
+
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/kubilayture/collaborative.notes.backend.git
    cd collaborative.notes.backend
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
@@ -56,6 +58,7 @@ The backend API for my collaborative notes application - a robust NestJS server 
 3. **Environment Setup**
 
    Create a `.env` file in the root directory:
+
    ```env
    # Database Configuration
    DB_HOST=localhost
@@ -75,11 +78,13 @@ The backend API for my collaborative notes application - a robust NestJS server 
 4. **Database Setup**
 
    Make sure PostgreSQL is running and create the database:
+
    ```sql
    CREATE DATABASE collaborative_notes;
    ```
 
 5. **Start the server**
+
    ```bash
    # Development with hot reload
    npm run start:dev
@@ -92,6 +97,7 @@ The backend API for my collaborative notes application - a robust NestJS server 
 ## 📚 API Documentation
 
 Once the server is running, visit:
+
 - **Swagger UI**: http://localhost:4000/api
 - **API Base URL**: http://localhost:4000
 
