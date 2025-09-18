@@ -52,6 +52,25 @@ export class InvitationsController {
     );
   }
 
+  @Get('note/:noteId/sharing-info')
+  @ApiOperation({
+    summary:
+      'Get sharing information (invitations and permissions) for a specific note',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Note sharing information retrieved successfully',
+  })
+  async getSharingInfoForNote(
+    @Request() req: any,
+    @Param('noteId') noteId: string,
+  ) {
+    return await this.invitationsService.getSharingInfoForNote(
+      noteId,
+      req.user.id,
+    );
+  }
+
   @Post()
   @ApiOperation({ summary: 'Create a new invitation for a note' })
   @ApiResponse({ status: 201, description: 'Invitation created successfully' })
