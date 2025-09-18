@@ -45,4 +45,4 @@ async function bootstrap() {
   console.log(`⚡ Collaboration server will start automatically on port 4001`);
 }
 
-bootstrap();
+void bootstrap();

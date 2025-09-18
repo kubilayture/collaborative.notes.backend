@@ -20,7 +20,7 @@ import { UsersService } from '../users/users.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { plainToClass } from 'class-transformer';
 import { randomBytes } from 'crypto';
-import { InvitationResponseDto } from './dto';
+import { InvitationResponseDto, InvitationItem } from './dto';
 
 @Injectable()
 export class InvitationsService {
@@ -83,7 +83,6 @@ export class InvitationsService {
     role: string,
     _noteTitle?: string,
     inviterName?: string,
-    _inviterEmail?: string,
   ) {
     const note = await this.noteRepository.findOne({
       where: { id: noteId },
@@ -154,6 +153,134 @@ export class InvitationsService {
       note,
       inviter,
     } as InvitationEntity);
+  }
+
+  async createBulkInvitations(
+    inviterId: string,
+    noteId: string,
+    invitations: InvitationItem[],
+    inviterName?: string,
+  ) {
+    // Validate note exists and user has permission
+    const note = await this.noteRepository.findOne({
+      where: { id: noteId },
+      relations: ['owner'],
+    });
+    if (!note) throw new NotFoundException('Note not found');
+
+    const hasPermission = await this.checkSharePermission(noteId, inviterId);
+    if (!hasPermission) throw new ForbiddenException('No permission to share');
+
+    const inviter = await this.userRepository.findOne({
+      where: { id: inviterId },
+    });
+    if (!inviter) throw new NotFoundException('Inviter not found');
+
+    const results: {
+      success: number;
+      errors: Array<{ email: string; error: string }>;
+      created: InvitationResponseDto[];
+    } = {
+      success: 0,
+      errors: [],
+      created: [],
+    };
+
+    // Process each invitation
+    for (const invitation of invitations) {
+      try {
+        // Skip if trying to invite self
+        if (inviter.email === invitation.email) {
+          results.errors.push({
+            email: invitation.email,
+            error: 'Cannot invite yourself',
+          });
+          continue;
+        }
+
+        // Check for existing pending invitation
+        const existingInvitation = await this.invitationRepository.findOne({
+          where: {
+            noteId,
+            inviteeEmail: invitation.email,
+            status: InvitationStatus.PENDING,
+          },
+        });
+        if (existingInvitation) {
+          results.errors.push({
+            email: invitation.email,
+            error: 'Invitation already exists',
+          });
+          continue;
+        }
+
+        // Check if user already has access
+        const invitee = await this.userRepository.findOne({
+          where: { email: invitation.email },
+        });
+        if (invitee) {
+          const existingPerm = await this.notePermissionRepository.findOne({
+            where: { noteId, userId: invitee.id },
+          });
+          if (existingPerm) {
+            results.errors.push({
+              email: invitation.email,
+              error: 'User already has access',
+            });
+            continue;
+          }
+        }
+
+        // Create invitation
+        const token = randomBytes(32).toString('hex');
+        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+        const roleUpper = (invitation.role || '').toString().toUpperCase();
+        const noteRole =
+          roleUpper === 'EDITOR'
+            ? NoteRole.EDITOR
+            : roleUpper === 'COMMENTER'
+              ? NoteRole.COMMENTER
+              : NoteRole.VIEWER;
+
+        const newInvitation = await this.invitationRepository.save({
+          token,
+          noteId,
+          inviterId,
+          inviteeEmail: invitation.email,
+          inviteeId: invitee?.id || null,
+          role: noteRole,
+          expiresAt,
+        });
+
+        // Notify invitee if registered
+        if (invitee) {
+          await this.notifications.create(
+            invitee.id,
+            NotificationType.NOTE_INVITATION,
+            'Note invitation',
+            `${inviterName || inviter.name} invited you to ${note.title}`,
+            { noteId, token },
+          );
+        }
+
+        results.success++;
+        results.created.push(
+          this.toResponseDto({
+            ...newInvitation,
+            note,
+            inviter,
+            invitee,
+          } as InvitationEntity),
+        );
+      } catch (error) {
+        results.errors.push({
+          email: invitation.email,
+          error: error.message || 'Failed to create invitation',
+        });
+      }
+    }
+
+    return results;
   }
 
   async acceptInvitation(token: string, userId: string) {

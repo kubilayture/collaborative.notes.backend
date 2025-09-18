@@ -381,7 +381,7 @@ export class CollaborationGateway
     }
 
     // Remove from thread rooms
-    for (const [threadId, users] of this.threadRooms) {
+    for (const [, users] of this.threadRooms) {
       if (users.has(userId)) {
         users.delete(userId);
       }

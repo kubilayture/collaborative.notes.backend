@@ -17,6 +17,7 @@ import {
 } from '@nestjs/swagger';
 import { AuthGuard } from '../auth/auth.guard';
 import { InvitationsService } from './invitations.service';
+import { CreateBulkInvitationsDto, CreateInvitationDto } from './dto';
 
 @ApiTags('invitations')
 @ApiBearerAuth()
@@ -54,16 +55,54 @@ export class InvitationsController {
   @Post()
   @ApiOperation({ summary: 'Create a new invitation for a note' })
   @ApiResponse({ status: 201, description: 'Invitation created successfully' })
-  async create(@Request() req: any, @Body() body: any) {
-    const { noteId, inviteeEmail, role, noteTitle } = body;
+  async create(@Request() req: any, @Body() body: CreateInvitationDto) {
+    const { noteId, inviteeEmail, role } = body;
     return await this.invitationsService.createInvitation(
       req.user.id,
       noteId,
       inviteeEmail,
       role,
-      noteTitle,
+      undefined, // noteTitle
       req.user.name,
-      req.user.email,
+    );
+  }
+
+  @Post('bulk')
+  @ApiOperation({ summary: 'Create multiple invitations for a note' })
+  @ApiResponse({
+    status: 201,
+    description: 'Bulk invitations processed successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        success: {
+          type: 'number',
+          description: 'Number of successful invitations',
+        },
+        errors: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              email: { type: 'string' },
+              error: { type: 'string' },
+            },
+          },
+        },
+        created: { type: 'array', description: 'Created invitation objects' },
+      },
+    },
+  })
+  async createBulk(
+    @Request() req: any,
+    @Body() body: CreateBulkInvitationsDto,
+  ) {
+    const { noteId, invitations } = body;
+    return await this.invitationsService.createBulkInvitations(
+      req.user.id,
+      noteId,
+      invitations,
+      req.user.name,
     );
   }
 
