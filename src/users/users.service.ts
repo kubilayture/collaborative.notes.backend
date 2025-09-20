@@ -1,10 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like, In } from 'typeorm';
-import { User, UserProfile } from '../entities';
+import { User, UserProfile, UserSettings } from '../entities';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { UpdateSettingsDto } from './dto/update-settings.dto';
 import { plainToClass } from 'class-transformer';
-import { CombinedUserResponseDto, UserProfileResponseDto } from './dto';
+import {
+  CombinedUserResponseDto,
+  UserProfileResponseDto,
+  UserSettingsResponseDto,
+} from './dto';
 
 @Injectable()
 export class UsersService {
@@ -13,6 +18,8 @@ export class UsersService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(UserProfile)
     private readonly profileRepository: Repository<UserProfile>,
+    @InjectRepository(UserSettings)
+    private readonly settingsRepository: Repository<UserSettings>,
   ) {}
 
   async findById(id: string): Promise<CombinedUserResponseDto | null> {
@@ -165,5 +172,68 @@ export class UsersService {
         ...updateData,
       });
     }
+  }
+
+  async getOrCreateSettings(userId: string): Promise<UserSettingsResponseDto> {
+    let settings = await this.settingsRepository.findOne({
+      where: { userId },
+    });
+
+    if (!settings) {
+      settings = await this.settingsRepository.save({
+        userId,
+        theme: 'system',
+        language: 'en',
+        emailNotifications: true,
+        pushNotifications: true,
+        desktopNotifications: true,
+        soundNotifications: true,
+        autoSaveInterval: 30,
+        defaultEditorMode: 'rich',
+        showLineNumbers: false,
+        wordWrap: true,
+      });
+    }
+
+    return plainToClass(UserSettingsResponseDto, settings);
+  }
+
+  async updateSettings(
+    userId: string,
+    updateData: UpdateSettingsDto,
+  ): Promise<UserSettingsResponseDto> {
+    let settings = await this.settingsRepository.findOne({
+      where: { userId },
+    });
+
+    if (!settings) {
+      settings = await this.settingsRepository.save({
+        userId,
+        theme: 'system',
+        language: 'en',
+        emailNotifications: true,
+        pushNotifications: true,
+        desktopNotifications: true,
+        soundNotifications: true,
+        autoSaveInterval: 30,
+        defaultEditorMode: 'rich',
+        showLineNumbers: false,
+        wordWrap: true,
+        ...updateData,
+      });
+    } else {
+      await this.settingsRepository.update(
+        { userId },
+        {
+          ...updateData,
+          updatedAt: new Date(),
+        },
+      );
+      settings = await this.settingsRepository.findOne({
+        where: { userId },
+      });
+    }
+
+    return plainToClass(UserSettingsResponseDto, settings!);
   }
 }

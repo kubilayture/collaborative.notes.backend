@@ -19,7 +19,9 @@ import { UsersService } from './users.service';
 import {
   CombinedUserResponseDto,
   UpdateProfileDto,
+  UpdateSettingsDto,
   UserProfileResponseDto,
+  UserSettingsResponseDto,
 } from './dto';
 
 @ApiTags('Users')
@@ -84,5 +86,32 @@ export class UsersController {
     }
 
     return this.usersService.searchUsers(query.trim(), resultLimit);
+  }
+
+  @Get('me/settings')
+  @ApiOperation({ summary: 'Get current user settings' })
+  @ApiResponse({
+    status: 200,
+    description: 'Current user settings',
+    type: UserSettingsResponseDto,
+  })
+  async getUserSettings(
+    @CurrentUser() user: any,
+  ): Promise<UserSettingsResponseDto> {
+    return this.usersService.getOrCreateSettings(user.id);
+  }
+
+  @Patch('me/settings')
+  @ApiOperation({ summary: 'Update user settings' })
+  @ApiResponse({
+    status: 200,
+    description: 'Updated user settings',
+    type: UserSettingsResponseDto,
+  })
+  async updateUserSettings(
+    @CurrentUser() user: any,
+    @Body() updateData: UpdateSettingsDto,
+  ): Promise<UserSettingsResponseDto> {
+    return this.usersService.updateSettings(user.id, updateData);
   }
 }
