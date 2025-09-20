@@ -43,10 +43,13 @@ export class Folder {
   updatedAt: Date;
 
   // Relations
-  @ManyToOne(() => Folder, folder => folder.children, { nullable: true, onDelete: 'CASCADE' })
+  @ManyToOne(() => Folder, (folder) => folder.children, {
+    nullable: true,
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'parentId' })
   parent?: Folder;
 
-  @OneToMany(() => Folder, folder => folder.parent)
+  @OneToMany(() => Folder, (folder) => folder.parent)
   children: Folder[];
 }

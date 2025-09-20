@@ -20,7 +20,7 @@ import { UsersService } from '../users/users.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { plainToClass } from 'class-transformer';
 import { randomBytes } from 'crypto';
-import { InvitationResponseDto } from './dto';
+import { InvitationResponseDto, InvitationItem } from './dto';
 
 @Injectable()
 export class InvitationsService {
@@ -76,6 +76,42 @@ export class InvitationsService {
     return invitations.map((i) => this.toResponseDto(i));
   }
 
+  async getSharingInfoForNote(noteId: string, userId: string) {
+    const canView = await this.checkSharePermission(noteId, userId);
+    if (!canView) throw new ForbiddenException('No permission');
+
+    const invitations = await this.invitationRepository.find({
+      where: { noteId },
+      relations: ['inviter', 'invitee', 'note'],
+      order: { createdAt: 'DESC' },
+    });
+
+    const permissions = await this.notePermissionRepository.find({
+      where: { noteId },
+      relations: ['user'],
+      order: { createdAt: 'DESC' },
+    });
+
+    return {
+      invitations: invitations.map((i) => this.toResponseDto(i)),
+      permissions: permissions.map((p) => ({
+        id: p.id,
+        userId: p.userId,
+        role: p.role,
+        user: p.user
+          ? {
+              id: p.user.id,
+              name: p.user.name,
+              email: p.user.email,
+              image: p.user.image,
+            }
+          : null,
+        createdAt: p.createdAt,
+        updatedAt: p.updatedAt,
+      })),
+    };
+  }
+
   async createInvitation(
     inviterId: string,
     noteId: string,
@@ -83,7 +119,6 @@ export class InvitationsService {
     role: string,
     _noteTitle?: string,
     inviterName?: string,
-    _inviterEmail?: string,
   ) {
     const note = await this.noteRepository.findOne({
       where: { id: noteId },
@@ -100,14 +135,12 @@ export class InvitationsService {
     if (inviter.email === inviteeEmail)
       throw new BadRequestException('Cannot invite yourself');
 
-    // Existing pending invite
     const existingInvitation = await this.invitationRepository.findOne({
       where: { noteId, inviteeEmail, status: InvitationStatus.PENDING },
     });
     if (existingInvitation)
       throw new ConflictException('Invitation already exists');
 
-    // Already has permission?
     const invitee = await this.userRepository.findOne({
       where: { email: inviteeEmail },
     });
@@ -138,7 +171,6 @@ export class InvitationsService {
       expiresAt,
     });
 
-    // Notify invitee if registered
     if (invitee) {
       await this.notifications.create(
         invitee.id,
@@ -156,6 +188,127 @@ export class InvitationsService {
     } as InvitationEntity);
   }
 
+  async createBulkInvitations(
+    inviterId: string,
+    noteId: string,
+    invitations: InvitationItem[],
+    inviterName?: string,
+  ) {
+    const note = await this.noteRepository.findOne({
+      where: { id: noteId },
+      relations: ['owner'],
+    });
+    if (!note) throw new NotFoundException('Note not found');
+
+    const hasPermission = await this.checkSharePermission(noteId, inviterId);
+    if (!hasPermission) throw new ForbiddenException('No permission to share');
+
+    const inviter = await this.userRepository.findOne({
+      where: { id: inviterId },
+    });
+    if (!inviter) throw new NotFoundException('Inviter not found');
+
+    const results: {
+      success: number;
+      errors: Array<{ email: string; error: string }>;
+      created: InvitationResponseDto[];
+    } = {
+      success: 0,
+      errors: [],
+      created: [],
+    };
+
+    for (const invitation of invitations) {
+      try {
+        if (inviter.email === invitation.email) {
+          results.errors.push({
+            email: invitation.email,
+            error: 'Cannot invite yourself',
+          });
+          continue;
+        }
+
+        const existingInvitation = await this.invitationRepository.findOne({
+          where: {
+            noteId,
+            inviteeEmail: invitation.email,
+            status: InvitationStatus.PENDING,
+          },
+        });
+        if (existingInvitation) {
+          results.errors.push({
+            email: invitation.email,
+            error: 'Invitation already exists',
+          });
+          continue;
+        }
+
+        const invitee = await this.userRepository.findOne({
+          where: { email: invitation.email },
+        });
+        if (invitee) {
+          const existingPerm = await this.notePermissionRepository.findOne({
+            where: { noteId, userId: invitee.id },
+          });
+          if (existingPerm) {
+            results.errors.push({
+              email: invitation.email,
+              error: 'User already has access',
+            });
+            continue;
+          }
+        }
+
+        const token = randomBytes(32).toString('hex');
+        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+        const roleUpper = (invitation.role || '').toString().toUpperCase();
+        const noteRole =
+          roleUpper === 'EDITOR'
+            ? NoteRole.EDITOR
+            : roleUpper === 'COMMENTER'
+              ? NoteRole.COMMENTER
+              : NoteRole.VIEWER;
+
+        const newInvitation = await this.invitationRepository.save({
+          token,
+          noteId,
+          inviterId,
+          inviteeEmail: invitation.email,
+          inviteeId: invitee?.id || null,
+          role: noteRole,
+          expiresAt,
+        });
+
+        if (invitee) {
+          await this.notifications.create(
+            invitee.id,
+            NotificationType.NOTE_INVITATION,
+            'Note invitation',
+            `${inviterName || inviter.name} invited you to ${note.title}`,
+            { noteId, token },
+          );
+        }
+
+        results.success++;
+        results.created.push(
+          this.toResponseDto({
+            ...newInvitation,
+            note,
+            inviter,
+            invitee,
+          } as InvitationEntity),
+        );
+      } catch (error) {
+        results.errors.push({
+          email: invitation.email,
+          error: error.message || 'Failed to create invitation',
+        });
+      }
+    }
+
+    return results;
+  }
+
   async acceptInvitation(token: string, userId: string) {
     const invitation = await this.invitationRepository.findOne({
       where: { token },
@@ -171,7 +324,6 @@ export class InvitationsService {
       throw new ForbiddenException('This invitation is not for your email');
     }
 
-    // Ensure permission
     const existingPermission = await this.notePermissionRepository.findOne({
       where: { noteId: invitation.noteId, userId },
     });
@@ -184,7 +336,6 @@ export class InvitationsService {
       });
     }
 
-    // Mark accepted
     await this.invitationRepository.update(invitation.id, {
       status: InvitationStatus.ACCEPTED,
       inviteeId: userId,

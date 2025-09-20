@@ -23,7 +23,7 @@ export class AuthGuard implements CanActivate {
       request.user = session.user;
       request.session = session.session;
       return true;
-    } catch (error) {
+    } catch {
       throw new UnauthorizedException('Invalid session');
     }
   }

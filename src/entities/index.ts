@@ -1,5 +1,6 @@
 export { User } from './user.entity';
 export { UserProfile } from './user-profile.entity';
+export { UserSettings } from './user-settings.entity';
 export { Friend, FriendStatus } from './friend.entity';
 export { Note } from './note.entity';
 export { NotePermission, NoteRole } from './note-permission.entity';
