@@ -218,6 +218,19 @@ export class FoldersService {
       throw new ForbiddenException('Cannot delete system folders');
     }
 
+    // Use query builder to move all notes from this folder to its parent
+    await this.foldersRepository.query(
+      `UPDATE notes SET "folderId" = $1 WHERE "folderId" = $2 AND "ownerId" = $3`,
+      [folder.parentId, id, userId]
+    );
+
+    // Move all subfolders from this folder to its parent
+    await this.foldersRepository.update(
+      { parentId: id, ownerId: userId },
+      { parentId: folder.parentId }
+    );
+
+    // Now delete the empty folder
     await this.foldersRepository.remove(folder);
   }
 
