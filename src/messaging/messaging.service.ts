@@ -410,6 +410,43 @@ export class MessagingService {
     await this.threadRepository.save(thread);
   }
 
+  async searchMessages(
+    userId: string,
+    query: string,
+    limit: number = 10,
+  ): Promise<{ threads: ThreadResponseDto[]; messages: MessageResponseDto[] }> {
+    // Search threads by name
+    const threads = await this.threadRepository
+      .createQueryBuilder('thread')
+      .leftJoinAndSelect('thread.creator', 'creator')
+      .where(':userId = ANY(thread.participantIds)', { userId })
+      .andWhere('LOWER(thread.name) LIKE LOWER(:query)', {
+        query: `%${query}%`,
+      })
+      .take(limit)
+      .getMany();
+
+    // Search messages by content
+    const messages = await this.messageRepository
+      .createQueryBuilder('message')
+      .leftJoinAndSelect('message.sender', 'sender')
+      .leftJoinAndSelect('message.thread', 'thread')
+      .where(':userId = ANY(thread.participantIds)', { userId })
+      .andWhere('LOWER(message.content) LIKE LOWER(:query)', {
+        query: `%${query}%`,
+      })
+      .orderBy('message.createdAt', 'DESC')
+      .take(limit)
+      .getMany();
+
+    return {
+      threads: threads.map((thread) => plainToClass(ThreadResponseDto, thread)),
+      messages: messages.map((message) =>
+        plainToClass(MessageResponseDto, message),
+      ),
+    };
+  }
+
   private async getMessageById(messageId: string): Promise<MessageResponseDto> {
     const message = await this.messageRepository.findOne({
       where: { id: messageId },
