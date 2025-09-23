@@ -4,6 +4,7 @@ import {
   Patch,
   Body,
   Query,
+  Param,
   UseGuards,
   BadRequestException,
 } from '@nestjs/common';
@@ -42,6 +43,20 @@ export class UsersController {
     @CurrentUser() user: any,
   ): Promise<CombinedUserResponseDto> {
     return this.usersService.getCurrentUser(user.id);
+  }
+
+  @Get(':userId')
+  @ApiOperation({ summary: 'Get user profile by ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'User data with profile',
+    type: CombinedUserResponseDto,
+  })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  async getUserById(
+    @Param('userId') userId: string,
+  ): Promise<CombinedUserResponseDto> {
+    return this.usersService.getUserById(userId);
   }
 
   @Patch('me/profile')

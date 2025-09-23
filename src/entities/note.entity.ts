@@ -28,7 +28,7 @@ export class Note {
   ownerId: string;
 
   @Column({ type: 'uuid', nullable: true })
-  folderId?: string;
+  folderId?: string | null;
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'ownerId' })

@@ -1,11 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
-import { UserResponseDto } from '../../users/dto';
+import { CombinedUserResponseDto } from '../../users/dto';
 
 export class FriendListItemDto {
-  @ApiProperty({ description: 'Friend user information' })
+  @ApiProperty({ description: 'Friend user information with profile' })
   @Expose()
-  friend: UserResponseDto;
+  friend: CombinedUserResponseDto;
 
   @ApiProperty({ description: 'When friendship was established' })
   @Expose()

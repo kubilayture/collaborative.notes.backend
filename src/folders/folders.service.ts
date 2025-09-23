@@ -54,10 +54,10 @@ export class FoldersService {
     const folder = this.foldersRepository.create({
       ...createFolderDto,
       ownerId: userId,
-    });
+    } as any);
 
     const savedFolder = await this.foldersRepository.save(folder);
-    return this.mapToResponseDto(savedFolder);
+    return this.mapToResponseDto(savedFolder as unknown as Folder);
   }
 
   async findAll(
@@ -161,26 +161,30 @@ export class FoldersService {
 
     // Check if moving to a parent that would create a cycle
     if (
-      updateFolderDto.parentId &&
+      updateFolderDto.hasOwnProperty('parentId') &&
       updateFolderDto.parentId !== folder.parentId
     ) {
-      const isDescendant = await this.isDescendantOf(
-        updateFolderDto.parentId,
-        id,
-      );
-      if (isDescendant || updateFolderDto.parentId === id) {
-        throw new BadRequestException(
-          'Cannot move folder to its own descendant',
+      // If parentId is not null, validate parent folder
+      if (updateFolderDto.parentId !== null) {
+        const isDescendant = await this.isDescendantOf(
+          updateFolderDto.parentId as string,
+          id,
         );
-      }
+        if (isDescendant || updateFolderDto.parentId === id) {
+          throw new BadRequestException(
+            'Cannot move folder to its own descendant',
+          );
+        }
 
-      // Check if parent exists and belongs to user
-      const parentFolder = await this.foldersRepository.findOne({
-        where: { id: updateFolderDto.parentId, ownerId: userId },
-      });
-      if (!parentFolder) {
-        throw new NotFoundException('Parent folder not found');
+        // Check if parent exists and belongs to user
+        const parentFolder = await this.foldersRepository.findOne({
+          where: { id: updateFolderDto.parentId as string, ownerId: userId },
+        });
+        if (!parentFolder) {
+          throw new NotFoundException('Parent folder not found');
+        }
       }
+      // If parentId is null, we're moving to root - no additional validation needed
     }
 
     // Check for duplicate names if name is being changed
@@ -190,7 +194,7 @@ export class FoldersService {
           name: updateFolderDto.name,
           ownerId: userId,
           parentId: updateFolderDto.parentId ?? folder.parentId,
-        },
+        } as any,
       });
 
       if (existingFolder && existingFolder.id !== id) {

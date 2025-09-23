@@ -4,6 +4,7 @@ import {
   MaxLength,
   IsUUID,
   Matches,
+  ValidateIf,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
@@ -33,10 +34,11 @@ export class CreateFolderDto {
   color?: string;
 
   @ApiPropertyOptional({
-    description: 'Parent folder ID',
+    description: 'Parent folder ID (null for root)',
     example: 'uuid-string',
   })
   @IsOptional()
+  @ValidateIf((o) => o.parentId !== null)
   @IsUUID()
-  parentId?: string;
+  parentId?: string | null;
 }

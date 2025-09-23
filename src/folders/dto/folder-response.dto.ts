@@ -16,8 +16,8 @@ export class FolderResponseDto {
   @ApiProperty({ description: 'Owner ID' })
   ownerId: string;
 
-  @ApiPropertyOptional({ description: 'Parent folder ID' })
-  parentId?: string;
+  @ApiPropertyOptional({ description: 'Parent folder ID (null for root)' })
+  parentId?: string | null;
 
   @ApiProperty({ description: 'Is system folder' })
   isSystem: boolean;

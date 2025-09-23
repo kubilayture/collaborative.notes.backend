@@ -62,6 +62,28 @@ export class InvitationsService {
       .map((i) => this.toResponseDto(i));
   }
 
+  async getMySentInvitations(userId: string): Promise<InvitationResponseDto[]> {
+    const invitations = await this.invitationRepository.find({
+      where: { inviterId: userId, status: InvitationStatus.PENDING },
+      relations: ['invitee', 'note', 'note.owner'],
+      order: { createdAt: 'DESC' },
+    });
+
+    // Mark expired
+    const now = new Date();
+    const expired = invitations.filter((i) => i.expiresAt <= now);
+    if (expired.length) {
+      await this.invitationRepository.update(
+        expired.map((i) => i.id),
+        { status: InvitationStatus.EXPIRED },
+      );
+    }
+
+    return invitations
+      .filter((i) => i.expiresAt > now)
+      .map((i) => this.toResponseDto(i));
+  }
+
   async getInvitationsForNote(
     noteId: string,
     userId: string,
@@ -404,6 +426,22 @@ export class InvitationsService {
       createdAt: invitation.createdAt,
       updatedAt: invitation.updatedAt,
     });
+  }
+
+  async cancelInvitation(invitationId: string, userId: string): Promise<void> {
+    const invitation = await this.invitationRepository.findOne({
+      where: {
+        id: invitationId,
+        inviterId: userId,
+        status: InvitationStatus.PENDING,
+      },
+    });
+
+    if (!invitation) {
+      throw new NotFoundException('Invitation not found or not pending');
+    }
+
+    await this.invitationRepository.remove(invitation);
   }
 
   private async checkSharePermission(
