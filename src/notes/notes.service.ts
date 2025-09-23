@@ -331,7 +331,7 @@ export class NotesService {
     }
 
     await this.noteRepository.update(noteId, {
-      folderId: folderId ?? undefined,
+      folderId: folderId,
     });
     return this.findById(noteId, userId);
   }

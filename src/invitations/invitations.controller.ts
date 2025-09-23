@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Delete,
   Body,
   Param,
   UseGuards,
@@ -34,6 +35,16 @@ export class InvitationsController {
   })
   async getMyInvitations(@Request() req: any) {
     return await this.invitationsService.getMyInvitations(req.user.id);
+  }
+
+  @Get('sent')
+  @ApiOperation({ summary: 'Get all sent invitations for the authenticated user' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of sent invitations retrieved successfully',
+  })
+  async getMySentInvitations(@Request() req: any) {
+    return await this.invitationsService.getMySentInvitations(req.user.id);
   }
 
   @Get('note/:noteId')
@@ -139,5 +150,21 @@ export class InvitationsController {
   @ApiResponse({ status: 200, description: 'Invitation declined successfully' })
   async decline(@Request() req: any, @Param('token') token: string) {
     return await this.invitationsService.declineInvitation(token, req.user.id);
+  }
+
+  @Delete(':invitationId/cancel')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Cancel a sent invitation' })
+  @ApiResponse({ status: 204, description: 'Invitation cancelled successfully' })
+  @ApiResponse({
+    status: 404,
+    description: 'Invitation not found or not pending',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Cannot cancel invitation that you did not send',
+  })
+  async cancel(@Request() req: any, @Param('invitationId') invitationId: string) {
+    return await this.invitationsService.cancelInvitation(invitationId, req.user.id);
   }
 }

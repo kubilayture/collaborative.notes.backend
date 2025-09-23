@@ -31,7 +31,7 @@ export class Folder {
   ownerId: string;
 
   @Column({ nullable: true })
-  parentId?: string;
+  parentId?: string | null;
 
   @Column({ default: false })
   isSystem: boolean;

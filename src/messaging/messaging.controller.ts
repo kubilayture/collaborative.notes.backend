@@ -222,4 +222,47 @@ export class MessagingController {
   ): Promise<void> {
     return this.messagingService.leaveThread(userId, threadId);
   }
+
+  @Get('search')
+  @ApiOperation({ summary: 'Search messages and threads' })
+  @ApiQuery({ name: 'q', description: 'Search query' })
+  @ApiQuery({
+    name: 'limit',
+    description: 'Result limit',
+    required: false,
+    type: Number,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Search results',
+    schema: {
+      type: 'object',
+      properties: {
+        threads: {
+          type: 'array',
+          items: { $ref: '#/components/schemas/ThreadResponseDto' },
+        },
+        messages: {
+          type: 'array',
+          items: { $ref: '#/components/schemas/MessageResponseDto' },
+        },
+      },
+    },
+  })
+  async searchMessages(
+    @CurrentUser('id') userId: string,
+    @Query('q') query: string,
+    @Query('limit') limit?: string,
+  ): Promise<{ threads: ThreadResponseDto[]; messages: MessageResponseDto[] }> {
+    if (!query || query.trim().length < 2) {
+      return { threads: [], messages: [] };
+    }
+
+    const resultLimit = limit ? parseInt(limit, 10) : 10;
+    return this.messagingService.searchMessages(
+      userId,
+      query.trim(),
+      resultLimit,
+    );
+  }
 }

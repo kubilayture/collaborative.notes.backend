@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
-import { UserResponseDto } from '../../users/dto';
+import { CombinedUserResponseDto } from '../../users/dto';
 import { FriendStatus } from '../../entities';
 
 export class FriendResponseDto {
@@ -10,11 +10,11 @@ export class FriendResponseDto {
 
   @ApiProperty({ description: 'User who sent the request' })
   @Expose()
-  requester: UserResponseDto;
+  requester: CombinedUserResponseDto;
 
   @ApiProperty({ description: 'User who received the request' })
   @Expose()
-  addressee: UserResponseDto;
+  addressee: CombinedUserResponseDto;
 
   @ApiProperty({ description: 'Friend request status', enum: FriendStatus })
   @Expose()

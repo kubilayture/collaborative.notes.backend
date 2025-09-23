@@ -147,6 +147,22 @@ export class FriendsService {
     await this.friendRepository.save(friendRequest);
   }
 
+  async cancelFriendRequest(userId: string, requestId: string): Promise<void> {
+    const friendRequest = await this.friendRepository.findOne({
+      where: {
+        id: requestId,
+        requesterId: userId,
+        status: FriendStatus.PENDING,
+      },
+    });
+
+    if (!friendRequest) {
+      throw new NotFoundException('Friend request not found or not pending');
+    }
+
+    await this.friendRepository.remove(friendRequest);
+  }
+
   async getFriends(userId: string): Promise<FriendsListResponseDto> {
     const friendRelations = await this.friendRepository
       .createQueryBuilder('friend')
@@ -185,8 +201,14 @@ export class FriendsService {
           : relation.requester;
       const profile = profilesMap[friend.id];
 
+      // Create combined user response with profile data
+      const combinedFriend = {
+        ...friend,
+        profile: profile || undefined,
+      };
+
       return plainToClass(FriendListItemDto, {
-        friend,
+        friend: combinedFriend,
         friendsSince: relation.updatedAt,
         isOnline: profile?.isOnline || false,
         lastSeenAt: profile?.lastSeenAt || null,
@@ -271,6 +293,37 @@ export class FriendsService {
       throw new NotFoundException('Friend request not found');
     }
 
-    return plainToClass(FriendResponseDto, friendRequest);
+    // Get profiles for both users
+    const profiles = await this.profileRepository.find({
+      where: [
+        { userId: friendRequest.requesterId },
+        { userId: friendRequest.addresseeId },
+      ],
+    });
+
+    const profilesMap = profiles.reduce(
+      (acc, profile) => {
+        acc[profile.userId] = profile;
+        return acc;
+      },
+      {} as Record<string, UserProfile>,
+    );
+
+    // Create combined user data
+    const requesterWithProfile = {
+      ...friendRequest.requester,
+      profile: profilesMap[friendRequest.requesterId] || undefined,
+    };
+
+    const addresseeWithProfile = {
+      ...friendRequest.addressee,
+      profile: profilesMap[friendRequest.addresseeId] || undefined,
+    };
+
+    return plainToClass(FriendResponseDto, {
+      ...friendRequest,
+      requester: requesterWithProfile,
+      addressee: addresseeWithProfile,
+    });
   }
 }

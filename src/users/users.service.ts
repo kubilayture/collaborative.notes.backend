@@ -85,6 +85,14 @@ export class UsersService {
     return user;
   }
 
+  async getUserById(userId: string): Promise<CombinedUserResponseDto> {
+    const user = await this.findById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return user;
+  }
+
   async getOrCreateProfile(userId: string): Promise<UserProfileResponseDto> {
     let profile = await this.profileRepository.findOne({
       where: { userId },

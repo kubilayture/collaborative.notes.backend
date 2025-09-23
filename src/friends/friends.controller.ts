@@ -87,6 +87,25 @@ export class FriendsController {
     return this.friendsService.declineFriendRequest(userId, requestId);
   }
 
+  @Delete('requests/:requestId/cancel')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Cancel a sent friend request' })
+  @ApiResponse({ status: 204, description: 'Friend request cancelled' })
+  @ApiResponse({
+    status: 404,
+    description: 'Friend request not found or not pending',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Cannot cancel friend request that you did not send',
+  })
+  async cancelFriendRequest(
+    @CurrentUser('id') userId: string,
+    @Param('requestId') requestId: string,
+  ): Promise<void> {
+    return this.friendsService.cancelFriendRequest(userId, requestId);
+  }
+
   @Get()
   @ApiOperation({ summary: 'Get user friends list' })
   @ApiResponse({
